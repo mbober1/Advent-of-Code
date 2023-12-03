@@ -92,13 +92,10 @@ fn main() {
         let last_digit = get_last_number(line);
         let last_fake_number = get_last_fake_number(line);
 
-        if last_digit.1 == 0 && last_fake_number.1 == 0 {
+        if first_digit.0 == last_digit.0 && first_fake_number.1 == 0 && last_fake_number.1 == 0 {
+            println!("drop {line}");
             continue;
         }
-
-        // if first_digit.1 == last_digit.1 && first_fake_number.1 == last_fake_number.1 {
-        //     continue;
-        // }
 
         if first_digit.0 < first_fake_number.0 {
             sub_result += first_digit.1*10;
