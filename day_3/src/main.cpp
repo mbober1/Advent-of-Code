@@ -26,6 +26,11 @@ bool is_symbols(const char val)
   return (val != '.');
 }
 
+bool is_gear(const char val)
+{
+  return (val == '*');
+}
+
 struct Number
 {
   int val;
@@ -33,6 +38,13 @@ struct Number
   size_t begin_idx;
   size_t end_idx;
   size_t line_idx;
+};
+
+struct Gear
+{
+  Number number;
+  size_t line;
+  size_t idx;
 };
 
 std::vector<Number> get_numbers(const std::vector<std::string>& data)
@@ -67,7 +79,7 @@ std::vector<Number> get_numbers(const std::vector<std::string>& data)
   return results;
 }
 
-bool check_number(const Number& number, const std::vector<std::string>& data)
+bool check_number(const Number& number, const std::vector<std::string>& data, std::vector<Gear>& gears)
 {
   size_t this_line = number.line_idx;
   size_t next_line = this_line +1;
@@ -85,37 +97,49 @@ bool check_number(const Number& number, const std::vector<std::string>& data)
   // LEFT
   if (left_condition)
   {
-    if (is_symbols(data[this_line][prev_char])) return true;
+    char val = data[this_line][prev_char];
+    if (is_gear(val)) gears.push_back(Gear{number, this_line, prev_char});
+    if (is_symbols(val)) return true;
   }
 
   // RIGHT
   if (right_condition)
   {
-    if (is_symbols(data[this_line][next_char])) return true;
+    char val = data[this_line][next_char];
+    if (is_gear(val)) gears.push_back(Gear{number, this_line, next_char});
+    if (is_symbols(val)) return true;
   }
 
   // DIAGONALLY TOP LEFT
   if (left_condition && top_condition)
   {
-    if (is_symbols(data[prev_line][prev_char])) return true;
+    char val = data[prev_line][prev_char];
+    if (is_gear(val)) gears.push_back(Gear{number, prev_line, prev_char});
+    if (is_symbols(val)) return true;
   }
 
   // DIAGONALLY TOP RIGHT
   if (right_condition && top_condition)
   {
-    if (is_symbols(data[prev_line][next_char])) return true;
+    char val = data[prev_line][next_char];
+    if (is_gear(val)) gears.push_back(Gear{number, prev_line, next_char});
+    if (is_symbols(val)) return true;
   }
 
   // DIAGONALLY BOTTOM LEFT
   if (left_condition && bottom_condition)
   {
-    if (is_symbols(data[next_line][prev_char])) return true;
+    char val = data[next_line][prev_char];
+    if (is_gear(val)) gears.push_back(Gear{number, next_line, prev_char});
+    if (is_symbols(val)) return true;
   }
 
   // DIAGONALLY BOTTOM RIGHT
   if (right_condition && bottom_condition)
   {
-    if (is_symbols(data[next_line][next_char])) return true;
+    char val = data[next_line][next_char];
+    if (is_gear(val)) gears.push_back(Gear{number, next_line, next_char});
+    if (is_symbols(val)) return true;
   }
 
 
@@ -124,13 +148,17 @@ bool check_number(const Number& number, const std::vector<std::string>& data)
     // UP
     if (top_condition)
     {
-      if (is_symbols(data[prev_line][idx])) return true;
+      char val = data[prev_line][idx];
+      if (is_gear(val)) gears.push_back(Gear{number, prev_line, idx});
+      if (is_symbols(val)) return true;
     }
 
     // DOWN
     if (bottom_condition)
     {
-      if (is_symbols(data[next_line][idx])) return true;
+      char val = data[next_line][idx];
+      if (is_gear(val)) gears.push_back(Gear{number, next_line, idx});
+      if (is_symbols(val)) return true;
     }
   }
   
@@ -139,7 +167,8 @@ bool check_number(const Number& number, const std::vector<std::string>& data)
 
 int main(void)
 {
-  int results{0};
+  int results{0}, gear_ratios{0};
+  std::vector<Gear> gears;
 
   auto data = read_file("input");
 
@@ -147,12 +176,23 @@ int main(void)
 
   for (auto &&number : numbers)
   {
-    if (check_number(number, data))
+    if (check_number(number, data, gears))
     {
       results += number.val;
     }
   }
 
-  printf("%d\n", results);
+  for (auto &&gear1 : gears)
+  {
+    for (auto &&gear2 : gears)
+    {
+      if ((&gear1.number) != (&gear2.number) && gear1.idx == gear2.idx && gear1.line == gear2.line)
+      {
+        gear_ratios += gear1.number.val * gear2.number.val;
+      }
+    }
+  }
+
+  printf("Parts sum %d, Gear ratios: %d\n", results, gear_ratios/2);
   return 0;
 }
