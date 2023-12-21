@@ -3,6 +3,7 @@
 #include <vector>
 #include <tuple>
 #include <sstream>
+#include <list>
 
 std::vector<std::string> read_file(const std::string &filename)
 {
@@ -53,39 +54,70 @@ std::vector<int> get_numbers(const std::string& numbers)
   return results;
 }
 
-int check_card(std::string line)
+class Scratchcard
 {
-  int match{0};
-  int card_idx = get_card_idx(line);
-  auto data = split_data(line);
+  int _id;
+  int _points;
+  int _matchs;
 
-  auto winning_numbers = get_numbers(std::get<0>(data));
-  auto numbers = get_numbers(std::get<1>(data));
-
-  for (auto &&number : numbers)
+public:
+  Scratchcard(std::string line) : _id{0}, _points{0}, _matchs{0}
   {
-    for (auto &&winning_number : winning_numbers)
+    _id = get_card_idx(line);
+    auto data = split_data(line);
+
+    auto winning_numbers = get_numbers(std::get<0>(data));
+    auto numbers = get_numbers(std::get<1>(data));
+
+    for (auto &&number : numbers)
     {
-      if (number == winning_number)
+      for (auto &&winning_number : winning_numbers)
       {
-        match++;
+        if (number == winning_number)
+        {
+          _matchs++;
+        }
       }
     }
+
+    _points =  (1<<_matchs)/2;
   }
 
-  return (1<<match)/2;
-}
-
+  int points() const { return _points; }
+  int matchs() const { return _matchs; }
+  int id() const { return _id; }
+};
 
 int main(void)
 {
-  int points{0};
+  int points{0}, processed_cards{0};
+  std::vector<Scratchcard> cards;
+  std::list<Scratchcard> process_queue;
 
-  for (auto &&card : read_file("input"))
+  for (auto &&line : read_file("input"))
   {
-    points += check_card(card);
+    cards.push_back(Scratchcard{line});
   }
 
-  printf("Points: %d\n", points);
+  for (auto &&card : cards)
+  {
+    points += card.points();
+    process_queue.push_back(card);
+  }
+
+  while (false == process_queue.empty())
+  {
+    auto card = process_queue.front();
+    process_queue.pop_front();
+
+    for (int new_card = card.matchs(); new_card > 0; new_card--)
+    {
+      int card_id = card.id() + new_card;
+      process_queue.push_front(cards.at(card_id -1));
+    }
+    processed_cards++;
+  }
+  
+  printf("Points: %d, Processed cards: %d\n", points, processed_cards);
   return 0;
 }
