@@ -2,6 +2,50 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <tuple>
+
+class Colors
+{
+  int _red;
+  int _green;
+  int _blue;
+
+  public:
+  Colors(int red, int green, int blue) : _red(red), _green(green), _blue(blue) {}
+
+  bool operator>(const Colors data)
+  {
+    if (_red > data.get_red() || _green > data.get_green() || _blue > data.get_blue())
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  Colors max(const Colors data)
+  {
+    Colors result{0, 0, 0};
+    result._red = std::max(_red, data.get_red());
+    result._green = std::max(_green, data.get_green());
+    result._blue = std::max(_blue, data.get_blue());
+    return result;
+  }
+
+  int power()
+  {
+    return _red * _green * _blue;
+  }
+
+  void add_red(int val)   { _red    += val; }
+  void add_green(int val) { _green  += val; }
+  void add_blue(int val)  { _blue   += val; }
+  int get_red() const     { return _red;    }
+  int get_green() const   { return _green;  }
+  int get_blue() const    { return _blue;   }
+};
 
 std::vector<std::string> read_file(const std::string &filename)
 {
@@ -35,25 +79,12 @@ std::vector<std::string> split_to_sets(std::string line)
   return results;
 }
 
-bool check_conditions(const int red, const int green, const int blue)
-{
-  constexpr int max_red{12};
-  constexpr int max_green{13};
-  constexpr int max_blue{14};
 
-  if (red <= max_red && green <= max_green && blue <= max_blue)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
-int get_game_score(std::string line)
+std::tuple<int, int> get_game_score(std::string line)
 {
   int result{0};
+  Colors bag_max{12, 13, 14};
+  Colors game_max{0, 0, 0};
 
   { // get game idx
     const size_t game_prefix{4};
@@ -66,7 +97,8 @@ int get_game_score(std::string line)
 
   for (auto &&set : split_to_sets(line))
   {
-    int red{0}, green{0}, blue{0}, num{0};
+    int num{0};
+    Colors tmp{0, 0, 0};
     std::string color;
     std::istringstream iss(set);
     
@@ -74,15 +106,15 @@ int get_game_score(std::string line)
     {
       if (std::string::npos != color.find("red"))
       {
-        red += num;
+        tmp.add_red(num);
       }
       else if (std::string::npos != color.find("green"))
       {
-        green += num;
+        tmp.add_green(num);
       }
       else if (std::string::npos != color.find("blue"))
       {
-        blue += num;
+        tmp.add_blue(num);
       }
       else
       {
@@ -90,27 +122,31 @@ int get_game_score(std::string line)
       }
     }
 
-    if (false == check_conditions(red, green, blue))
+    game_max = game_max.max(tmp);
+
+    if (tmp > bag_max)
     {
-      return 0;
+      result = 0;
     }
   }
 
-  return result;
+  return {result, game_max.power()};
 }
 
 int main(void)
 {
-  int result{0};
+  int result{0}, game_power{0};
 
   auto games = read_file("input");
 
   for(auto game : games)
   {
-    result += get_game_score(game);
+    auto score = get_game_score(game);
+    result += std::get<0>(score);
+    game_power += std::get<1>(score);
   }
 
-  printf("Final result is: %d\n", result);
+  printf("Final result is: %d, Game power: %d\n", result, game_power);
 
   return 0;
 }
