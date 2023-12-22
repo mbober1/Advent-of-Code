@@ -4,6 +4,7 @@
 #include <sstream>
 #include <map>
 #include <limits.h>
+#include <thread>
 
 std::vector<std::string> read_file(const std::string &filename)
 {
@@ -54,6 +55,22 @@ std::vector<Database> get_seeds(const std::string& line)
   return results;
 }
 
+std::vector<Map_rule> get_seeds_part2(const std::string& line)
+{
+  std::vector<Map_rule> results;
+  long int seed, range;
+  std::string header;
+  std::istringstream iss(line);
+  iss >> header;
+
+  while (iss >> seed >> range)
+  {
+    results.push_back(Map_rule{seed, seed + range, 0});
+  }
+  
+  return results;
+}
+
 std::vector<Map_rule> parse_map(const std::vector<std::string>& data, size_t& line)
 {
   std::vector<Map_rule>result;
@@ -92,35 +109,69 @@ long int get_from_map(const std::vector<Map_rule>& data, long int key)
   return key;
 }
 
+enum Map_name
+{
+  SEED_TO_SOIL,
+  SOIL_TO_FERTILIZER,
+  FERTILIZER_TO_WATER,
+  WATER_TO_LIGHT,
+  LIGHT_TO_TEMPERATURE,
+  TEMPERATURE_TO_HUMIDITY,
+  HUMIDITY_TO_LOCATION,
+
+  MAX_NAME,
+};
+
+void compute(const Map_rule& entity, const std::vector<Map_rule> almanac[], long int* min_location)
+{
+  for (long int seed = entity.range_begin; seed < entity.range_end; seed++)
+  {
+    long int soil        = get_from_map(almanac[SEED_TO_SOIL], seed);
+    long int fertilizer  = get_from_map(almanac[SOIL_TO_FERTILIZER], soil);
+    long int water       = get_from_map(almanac[FERTILIZER_TO_WATER], fertilizer);
+    long int light       = get_from_map(almanac[WATER_TO_LIGHT], water);
+    long int temperature = get_from_map(almanac[LIGHT_TO_TEMPERATURE], light);
+    long int humidity    = get_from_map(almanac[TEMPERATURE_TO_HUMIDITY], temperature);
+    long int location    = get_from_map(almanac[HUMIDITY_TO_LOCATION], humidity);
+    *min_location         = std::min(*min_location, location);
+  }
+}
+
 
 int main(void)
 {
-  long int min_location{INT_MAX};
+  long int min_location = {INT_MAX};
   auto data = read_file("input");
 
   size_t line{0};
-  auto database = get_seeds(data[line]);
+  // auto database = get_seeds(data[line]);
+  auto database = get_seeds_part2(data[line]);
   line+=3; // skip
 
-  auto seed_to_soil             = parse_map(data, line);
-  auto soil_to_fertilizer       = parse_map(data, line);
-  auto fertilizer_to_water      = parse_map(data, line);
-  auto water_to_light           = parse_map(data, line);
-  auto light_to_temperature     = parse_map(data, line);
-  auto temperature_to_humidity  = parse_map(data, line);
-  auto humidity_to_location     = parse_map(data, line);
-  
-  for (auto &&entity : database)
+  std::vector<Map_rule> almanac[MAX_NAME];
+  std::vector<std::thread> threads;
+  std::vector<long int*> min_locations;
+
+  for (auto &&map : almanac)
   {
-    entity.soil        = get_from_map(seed_to_soil, entity.seed);
-    entity.fertilizer  = get_from_map(soil_to_fertilizer, entity.soil);
-    entity.water       = get_from_map(fertilizer_to_water, entity.fertilizer);
-    entity.light       = get_from_map(water_to_light, entity.water);
-    entity.temperature = get_from_map(light_to_temperature, entity.light);
-    entity.humidity    = get_from_map(temperature_to_humidity, entity.temperature);
-    entity.location    = get_from_map(humidity_to_location, entity.humidity);
-    min_location       = std::min(min_location, entity.location);
-    printf("Seed %ld, soil %ld, fertilizer %ld, water %ld, light %ld, temperature %ld, humidity %ld, location %ld.\n", entity.seed, entity.soil, entity.fertilizer, entity.water, entity.light, entity.temperature, entity.humidity, entity.location);
+    map = parse_map(data, line);
+  }
+
+  for (size_t i = 0; i < database.size(); i++)
+  {
+    long int* val = new long int{INT_MAX};
+    min_locations.push_back(val);
+    threads.emplace_back([&](){compute(database.at(i), almanac, val);});
+  }
+  
+  for (auto &&thread : threads)
+  {
+    thread.join();
+  }
+
+  for (auto &&location : min_locations)
+  {
+    min_location = std::min(*location, min_location);
   }
   
   printf("The lowest location number is: %ld\n", min_location);
