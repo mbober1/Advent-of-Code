@@ -17,12 +17,12 @@ std::vector<std::string> read_file(const std::string &filename)
   return results;
 }
 
-std::vector<int> parse(const std::string& line)
+std::vector<long int> parse(const std::string& line)
 {
-  std::vector<int>result;
+  std::vector<long int>result;
   std::istringstream iss(line);
   std::string header;
-  int val;
+  long int val;
 
   iss >> header;
 
@@ -44,13 +44,13 @@ int main(void)
 
   for (size_t race = 0; race < times.size(); race++)
   {
-    int ways{0};
+    long int ways{0};
 
-    for (int hold_time = 0; hold_time < times[race]; hold_time++)
+    for (long int hold_time = 0; hold_time < times[race]; hold_time++)
     {
-      int speed = acceleration * hold_time;
-      int time_to_run = times[race] - hold_time;
-      int distance = time_to_run * speed;
+      long int speed = acceleration * hold_time;
+      long int time_to_run = times[race] - hold_time;
+      long int distance = time_to_run * speed;
 
       if (distance > records[race])
       {
@@ -59,7 +59,7 @@ int main(void)
       
     }
     
-    printf("Number of ways you can beat the record %d in race %ld\n", ways, race+1);
+    printf("Number of ways you can beat the record %ld in race %ld\n", ways, race+1);
   }
   
   return 0;
