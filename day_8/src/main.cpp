@@ -71,7 +71,7 @@ enum class Dir
 Dir get_dir(const std::string& directions)
 {
   static size_t last_move{0};
-  Dir result;
+  Dir result = Dir::LEFT;
 
   switch (directions.at(last_move))
   {
@@ -100,37 +100,72 @@ Dir get_dir(const std::string& directions)
   return result;
 }
 
+class Simulation
+{
+public:
+  std::string _node;
+  Signpost _singpost;
+
+  Simulation(const std::string& starting_node, const Signpost& signpost) 
+  : _node(starting_node), _singpost(signpost) {}
+
+  char get_last_char() const { return _node[2]; }
+};
+
 int main(void)
 {
   int step{0};
   auto data = read_file("input");
-
   auto directions = data[0];
-
   auto signposts = parse(data);
 
-  auto location = std::string("AAA");
-  auto singpost = signposts.at(location);
+  std::vector<Simulation> simulations;
 
-  while (0 != location.compare("ZZZ"))
+  for (auto &&signpost : signposts)
   {
-    if (signposts.end() == signposts.find(location))
-    {
-      assert(false);
-    }
-    else
-    {
-      singpost = signposts.at(location);
-    }
+    auto name = signpost.first;
 
+    if (name[2] == 'A')
+    {
+      simulations.push_back(Simulation{name, signposts.at(name)});
+      
+    }
+    
+  }
+
+  bool end{false};
+
+  while (end == false)
+  {
+    end = true;
+
+    for (auto &&sim : simulations)
+    {
+      if (sim.get_last_char() != 'Z')
+      {
+        end = false;
+      }
+    }
+    
+    for (auto &&sim : simulations)
+    {
+      sim._singpost = signposts.at(sim._node);
+    }
+    
     switch (get_dir(directions))
     {
     case Dir::LEFT:
-      location = singpost._left;
+      for (auto &&sim : simulations)
+      {
+        sim._node = sim._singpost._left;
+      }
       break;
 
     case Dir::RIGHT:
-      location = singpost._right;
+      for (auto &&sim : simulations)
+      {
+        sim._node = sim._singpost._right;
+      }
       break;
     
     default:
@@ -141,7 +176,7 @@ int main(void)
     step++;
   }
 
-  printf("Steps: %d\n", step);
+  printf("Steps: %d\n", step-1);
   
   return 0;
 }
