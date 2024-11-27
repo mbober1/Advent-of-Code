@@ -12,6 +12,7 @@
         "MIMode": "gdb",
         "miDebuggerPath": "/usr/bin/gdb"
       },
+      "preLaunchTask": "build",
     }
     
   ]
