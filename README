@@ -1,0 +1,7 @@
+# Advent of Code
+
+```
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DDay=1
+make
+```
