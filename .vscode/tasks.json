@@ -1,8 +1,6 @@
 {
-  "version": "0.1.0",
+  "version": "2.0.0",
   "command": "bash",
-  "isShellCommand": true,
-  "showOutput": "always",
   "options": {
       "cwd": "${workspaceRoot}/build"
   },
@@ -10,11 +8,19 @@
       "-c"
   ],
   "tasks": [
-      {
-          "taskName": "build",
-          "suppressTaskName": true,
-          "isBuildCommand": true,
-          "args": ["make"]
-      },
-  ]
+    {
+        "label": "build",
+        "type": "shell",
+        "command": "bash",
+        "args": [
+            "-c",
+            "make"
+        ],
+        "problemMatcher": [],
+        "group": {
+            "_id": "build",
+            "isDefault": false
+        }
+    }
+]
 }
