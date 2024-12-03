@@ -35,3 +35,12 @@ std::vector<std::string> read_words(const std::string &filename)
   file.close();
   return results;
 }
+
+std::string read_all(const std::string &filename)
+{
+  std::string result;
+  std::ifstream file(filename);
+  if(!file) throw std::runtime_error("Cannot open file: " + filename);
+  std::getline(file, result, '\0');
+  return result;
+}
