@@ -12,16 +12,16 @@ constexpr char VISITED    = 'X';
 
 class Position
 {
-  int _x;
-  int _y;
+  size_t _x;
+  size_t _y;
 public:
-  explicit Position(const int x, const int y) : _x(x), _y(y) {}
+  explicit Position(const size_t x, const size_t y) : _x(x), _y(y) {}
 
-  int get_x() const
+  size_t get_x() const
   {
     return _x;
   }
-  int get_y() const
+  size_t get_y() const
   {
     return _y;
   }
@@ -150,15 +150,10 @@ public:
 
   bool check_end(const Position& pos)
   {
-    int width = map.at(0).size();
-    int height = map.size();
-    int x = pos.get_x();
-    int y = pos.get_y();
+    size_t x = pos.get_x();
+    size_t y = pos.get_y();
 
-    if  (x >= width 
-      || y >= height
-      || x < 0
-      || y < 0)
+    if  (x >= width || y >= height)
     {
       return true;
     }
@@ -170,8 +165,8 @@ public:
 
   bool check_clear(const Position& pos)
   {
-    int x = pos.get_x();
-    int y = pos.get_y();
+    size_t x = pos.get_x();
+    size_t y = pos.get_y();
     if (OBSTACLE == map.at(y).at(x))
     {
       return false;
@@ -184,8 +179,8 @@ public:
 
   void mark_visited(const Position& pos)
   {
-    int x = pos.get_x();
-    int y = pos.get_y();
+    size_t x = pos.get_x();
+    size_t y = pos.get_y();
 
     if (map.at(y).at(x) == CLEAR)
     {
@@ -219,8 +214,8 @@ public:
   {
     if (true == check_clear(pos))
     {
-      int x = pos.get_x();
-      int y = pos.get_y();
+      size_t x = pos.get_x();
+      size_t y = pos.get_y();
       map.at(y).at(x) = OBSTACLE;
       return true;
     }
